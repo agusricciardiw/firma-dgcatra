@@ -367,6 +367,12 @@
       cursor: pointer;
     }
 
+    .combobox-option-detail {
+      display: block;
+      font-size: 11.5px;
+      opacity: .72;
+    }
+
     .combobox-option:hover,
     .combobox-option[aria-selected="true"] {
       color: #fff;
@@ -700,10 +706,10 @@
       'División Actas',
       'Departamento Administración y gestión de personal',
       'Departamento Alcoholemia',
-      'División Analisis y Desarrollo de Capital Humano',
+      'División Análisis y Desarrollo de Capital Humano',
       'Área Desarrollo y Cultura Organizacional (ADyCO)',
       'Área Asesoría Legal',
-      'Division Asuntos Legales',
+      'División Asuntos Legales',
       'Departamento Automotores',
       'Subgerencia Base Centro',
       'Base de Despliegue',
@@ -722,11 +728,11 @@
       'Área Convocatoria Adicionales',
       'Área Delegación Gremial',
       'Dirección General',
-      'División Gestión de Playas',
+      'División de Gestión de Procesamiento de Vehículos en Playas de Acarreos',
       'Área Grúas',
       'División Incorporación y Formación de agentes',
       'Área LPR',
-      'Division Mantenimiento',
+      'Departamento de Mantenimiento',
       'Área Mesa de Entrada',
       'Área Modernización e innovación',
       'Monitoreo AUSA',
@@ -744,10 +750,10 @@
       'Área Patrimonio',
       'Departamento Planeamiento y Gestión Operativa',
       'Playas de Acarreo',
-      'Gerencia Operativa Administración de Recursos Materiales',
-      'Gerencia RRMM - División Compras y Presupuesto',
+      'Gerencia Operativa de Administración de Recursos',
+      'Gerencia Operativa de Administración de Recursos - División Compras y Presupuesto',
       'Sección Relaciones Institucionales',
-      'Division Sistemas',
+      'División Sistemas',
       'Área Taller',
       'Área Uniformes',
       'Área Vinculación con Organizaciones y Alianzas para la Seguridad Vial'
@@ -757,7 +763,7 @@
       { name: 'Alejandra Beretta (Piedras)', address: 'Chacabuco 1261, edificio C' },
       { name: 'Cochabamba', address: 'Cochabamba 1571' },
       { name: 'Las Heras (Ocampo)', address: 'Ortiz de Ocampo 2517' },
-      { name: 'Cinthia Choque (Luro)', address: 'Virgilio 210' },
+      { name: 'Cinthia Choque (Luro)', address: 'Virgilio 273' },
       { name: 'Martin Servi (Vedia)', address: 'La Cachila 8700' },
       { name: 'Playa Libres del Sur', address: 'Brigadier General Juan Facundo Quiroga 1040' },
       { name: 'Playa Quinquela', address: 'Herrera 1618' },
@@ -843,6 +849,8 @@
       const listbox = root.querySelector('.combobox-list');
       const toggle = root.querySelector('.combobox-toggle');
       const options = items.map(item => typeof item === 'string' ? item : item.name);
+      // Las sedes también se buscan por dirección (ej. "Lamadrid").
+      const details = new Map(items.filter(item => typeof item !== 'string').map(item => [item.name, item.address]));
       let filtered = options.slice();
       let activeIndex = -1;
 
@@ -893,8 +901,9 @@
         const contains = [];
         options.forEach(option => {
           const normalizedOption = normalizeForSearch(option);
+          const normalizedDetail = normalizeForSearch(details.get(option) || '');
           if (!normalizedQuery || normalizedOption.startsWith(normalizedQuery)) startsWith.push(option);
-          else if (normalizedOption.includes(normalizedQuery)) contains.push(option);
+          else if (normalizedOption.includes(normalizedQuery) || normalizedDetail.includes(normalizedQuery)) contains.push(option);
         });
         filtered = [...startsWith, ...contains];
         activeIndex = -1;
@@ -916,6 +925,12 @@
           node.setAttribute('role', 'option');
           node.setAttribute('aria-selected', 'false');
           node.textContent = option;
+          if (details.has(option)) {
+            const detail = document.createElement('span');
+            detail.className = 'combobox-option-detail';
+            detail.textContent = details.get(option);
+            node.appendChild(detail);
+          }
           node.addEventListener('pointerdown', event => {
             event.preventDefault();
             choose(option);
